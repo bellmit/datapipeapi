@@ -61,7 +61,7 @@ public class XmlUtil {
         dzjzCatalogList.add(catalog);
         dataMap.put("dzjzCatalogList", dzjzCatalogList);
         writeXmlOut("evaluationReportResponse.ftl",
-                "/Users/suzhenchao/浩云/广西社矫/datapipeapi/src/main/resources/xmlfile/evaluationReportResponse.xml",
+                "F:\\datapipeapi\\src\\main\\resources\\xmlfile\\evaluationReportResponse.xml",
                 dataMap);
 //        writeXmlOut("document.ftl",
 //                "/Users/suzhenchao/浩云/广西社矫/datapipeapi/src/main/resources/xmlfile/evaluationReportResponse.xml",

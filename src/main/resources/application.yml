@@ -1,4 +1,13 @@
 server:
-  port:
+  port: 10220
 
 xmlSourcePath: xmltemplate
+
+ftp:
+  ip: 192.168.8.88
+  port: 21
+  username: anonymous
+  password:
+  encoding: utf-8
+  downloadPath: utf-8
+  uploadPath: utf-8
