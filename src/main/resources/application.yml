@@ -9,5 +9,5 @@ ftp:
   username: anonymous
   password:
   encoding: utf-8
-  downloadPath: utf-8
-  uploadPath: utf-8
+  downloadPath: /home/dapp/file_data_exchange/file_send/sft_send/
+  uploadPath: /home/dapp/file_data_exchange/file_receive/xtba_receive/sft/
