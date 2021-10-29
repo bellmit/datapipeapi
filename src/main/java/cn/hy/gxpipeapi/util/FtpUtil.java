@@ -29,6 +29,18 @@ public class FtpUtil {
     private static String username;
     private static String password;
     private static String encoding;
+    private static String downloadPath;
+    private static String uploadPath;
+
+    @Value("${ftp.uploadPath}")
+    public void setUploadPath(String uploadPath) {
+        FtpUtil.uploadPath = uploadPath;
+    }
+
+    @Value("${ftp.downloadPath}")
+    public void setDownloadPath(String downloadPath) {
+        FtpUtil.downloadPath = downloadPath;
+    }
 
     @Value("${ftp.ip}")
     public void setIp(String ip) {
@@ -54,7 +66,7 @@ public class FtpUtil {
     @PostConstruct
     public static void ftpClientInit() {
         log.info("连接ftp:" + connect());
-        getFiles("/tools");
+        getDownloadFiles();
     }
 
     private static FTPClient ftpClient = new FTPClient();
@@ -94,16 +106,27 @@ public class FtpUtil {
         return ftpClient;
     }
 
-    public static void getFiles(String path) {
+    public static void getDownloadFiles() {
+        FTPFile[] files = getFiles(downloadPath);
+        for (FTPFile file : files) {
+            log.info(file.getName());
+        }
+    }
+    public static FTPFile[] getFiles(String path) {
         FTPClient ftpClient = getFTPClient();
         try {
-            ftpClient.changeWorkingDirectory(path);
+            boolean changePath = ftpClient.changeWorkingDirectory(path);
+            if (!changePath) {
+                throw new RuntimeException(String.format("切换目录失败：%s", path));
+            }
             FTPFile[] ftpFiles = ftpClient.listFiles();
-            for (FTPFile ftpFile : ftpFiles) {
-                log.info(ftpFile.getName());
+            if (ftpFiles.length == 0) {
+                throw new RuntimeException(String.format("该目录[%s]下没有文件！", path));
+            } else {
+                return ftpFiles;
             }
         } catch (IOException e) {
-            log.info("获取文件失败：{}", e.getMessage());
+            throw new RuntimeException(String.format("获取文件失败：%s", e.getMessage()));
         }
     }
 }

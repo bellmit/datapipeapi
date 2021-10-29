@@ -4,10 +4,13 @@ server:
 xmlSourcePath: xmltemplate
 
 ftp:
-  ip: 192.168.8.88
+#  ip: 192.168.8.88
+  ip: 192.168.2.117
   port: 21
   username: anonymous
   password:
   encoding: utf-8
   downloadPath: /home/dapp/file_data_exchange/file_send/sft_send/
   uploadPath: /home/dapp/file_data_exchange/file_receive/xtba_receive/sft/
+#  downloadPath: /erp_data/
+#  uploadPath: /home/dapp/file_data_exchange/file_receive/xtba_receive/sft/
