@@ -90,6 +90,24 @@ public class FtpUtil {
         return result;
     }
 
+    public static void main(String[] args) {
+        try {
+            ftpClient.connect("192.168.2.117", 21);
+            ftpClient.login("anonymous", null);
+            ftpClient.setControlEncoding("UTF-8");
+            int reply = ftpClient.getReplyCode();
+            if (!FTPReply.isPositiveCompletion(reply)) {
+                log.info("连接失败");
+                ftpClient.disconnect();
+            } else {
+                log.info("连接成功");
+                FTPFile[] ftpFiles = ftpClient.listFiles();
+            }
+        } catch (IOException e) {
+            log.info("连接失败：{}", e.getMessage());
+        }
+    }
+
     public static void disConnect() {
         try {
             ftpClient.disconnect();
