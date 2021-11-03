@@ -6,5 +6,5 @@ import lombok.Data;
 public class UploadFile {
     private String path;
     private String name;
-    private String sortNo;
+    private String sort_no;
 }

@@ -9,20 +9,20 @@ public class CaseInfo {
     /**
      * 案件编号
      */
-    private String caseNo;
+    private String ajbh;
 
     /**
      * 案件状态/移送状态
      */
-    private String caseStatus;
+    private String case_status;
 
     /**
      * 案件移送记录列表
      */
-    private List<CaseStatus> caseStatusList;
+    private List<CaseStatusMain> CaseStatus_List;
 
     /**
      * 电子卷宗
      */
-    private List<DzjzCatalog> dzjzCatalogList;
+    private List<DzjzCatalogMain> DzjzCatalog_List;
 }
