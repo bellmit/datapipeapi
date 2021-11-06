@@ -13,7 +13,13 @@ import org.apache.commons.net.ftp.FTPClient;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.io.IOException;
+import java.io.*;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @project   : datapipeapi
@@ -25,13 +31,14 @@ import java.io.IOException;
 @Slf4j
 @Component
 public class FtpUtil {
-    private static String ip;
-    private static int port;
-    private static String username;
-    private static String password;
-    private static String encoding;
-    private static String downloadPath;
-    private static String uploadPath;
+    private static String ip = "59.211.16.162";
+    private static int port = 16788;
+    private static String username = "dapp";
+    private static String password = "GXjh12#$";
+    private static String encoding = "UTF-8";
+    private static String downloadPath = "/file_data_exchange/file_receive/xtba_receive/sft/";
+    private static String uploadPath = "/file_data_exchange/file_send/sft_send/";
+    private static String zipPath = "/Users/suzhenchao/浩云/广西社矫/datapipeapi/src/main/resources/static/zipfile";
 
     public static Logger getLog() {
         return log;
@@ -67,6 +74,15 @@ public class FtpUtil {
 
     public static FTPClient getFtpClient() {
         return ftpClient;
+    }
+
+    public static String getZipPath() {
+        return zipPath;
+    }
+
+    @Value("${ftp.zipPath}")
+    public static void setZipPath(String zipPath) {
+        FtpUtil.zipPath = zipPath;
     }
 
     @Value("${ftp.uploadPath}")
@@ -133,20 +149,64 @@ public class FtpUtil {
         //  username: dapp
         //  password: GXjh12#$
         //  encoding: utf-8
+        getDefaultFiles();
+    }
+
+    public static void getDefaultFiles() {
+        FTPClient ftpClient = getFTPClient();
+        String txtFilePath = "";
+        String zipFilePath = "";
         try {
-            ftpClient.connect("59.211.16.162", 16788);
-            ftpClient.login("dapp", "GXjh12#$");
-            ftpClient.setControlEncoding("UTF-8");
-            int reply = ftpClient.getReplyCode();
-            if (!FTPReply.isPositiveCompletion(reply)) {
-                log.info("连接失败");
-                ftpClient.disconnect();
-            } else {
-                log.info("连接成功");
-                FTPFile[] ftpFiles = ftpClient.listFiles();
+            boolean changePath = ftpClient.changeWorkingDirectory(downloadPath);
+            if (!changePath) {
+                throw new RuntimeException(String.format("切换目录失败：%s", downloadPath));
             }
-        } catch (IOException e) {
-            log.info("连接失败：{}", e.getMessage());
+            ftpClient.enterLocalPassiveMode();
+            FTPFile[] ftpFilesAll = ftpClient.listFiles();
+            if (ftpFilesAll.length == 0) {
+                throw new RuntimeException(String.format("该目录[%s]下没有文件！", downloadPath));
+            } else {
+                Map<String, List<FTPFile>> ftpFilesMap = Arrays.stream(ftpFilesAll).filter(FTPFile::isFile)
+                        .collect(Collectors.groupingBy(fileF -> fileF.getName().split("\\.")[0]));
+                for (Map.Entry<String, List<FTPFile>> entry : ftpFilesMap.entrySet()) {
+                    SimpleDateFormat sf = new SimpleDateFormat("yyyyMMdd");
+                    String todayDirName = sf.format(new Date());
+                    String todayZipPath = zipPath + File.separator + todayDirName + File.separator;
+                    File file = new File(todayZipPath);
+                    if (!file.exists()) {
+                        boolean mkdirs = file.mkdirs();
+                        if (mkdirs) {
+                            log.info("创建文件夹成功：{}", file.getPath());
+                        } else {
+                            throw new RuntimeException("创建文件夹失败：{}" + todayZipPath);
+                        }
+                    }
+                    List<FTPFile> ftpFiles = entry.getValue();
+                    if (ftpFiles.size() == 2 && ftpFiles.get(0).getName().endsWith(".txt") && ftpFiles.get(1).getName().endsWith(".zip")
+                            && ftpFiles.get(0).getName().equals("A4501021100002020090004_20211029_060402_1635525135.txt")) {
+                        FTPFile txtFile = ftpFiles.get(0);
+                        FTPFile zipFile = ftpFiles.get(1);
+                        txtFilePath = todayZipPath + txtFile.getName();
+                        zipFilePath = todayZipPath + zipFile.getName();
+                        File txtFileDownload = new File(txtFilePath);
+                        File zipFileDownload = new File(zipFilePath);
+                        if (txtFileDownload.exists() && txtFileDownload.isFile() && zipFileDownload.exists() && zipFileDownload.isFile()) {
+                            log.info("文件已存在：{},{}", txtFileDownload.getName(), zipFileDownload.getName());
+                            continue;
+                        }
+                        try (FileOutputStream txtOut = new FileOutputStream(txtFilePath);
+                             FileOutputStream zipOut = new FileOutputStream(zipFilePath);) {
+                            ftpClient.retrieveFile(txtFile.getName(), txtOut);
+                            ftpClient.retrieveFile(zipFile.getName(), zipOut);
+                            Md5Util.chargeMd5StrBy2Path(zipFilePath, txtFilePath);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
         }
     }
 
@@ -181,6 +241,7 @@ public class FtpUtil {
             }
             ftpClient.enterLocalPassiveMode();
             FTPFile[] ftpFiles = ftpClient.listFiles();
+            ftpClient.completePendingCommand();
             if (ftpFiles.length == 0) {
                 throw new RuntimeException(String.format("该目录[%s]下没有文件！", path));
             } else {

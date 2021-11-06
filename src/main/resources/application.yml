@@ -12,6 +12,7 @@ ftp:
   encoding: utf-8
   downloadPath: /file_data_exchange/file_receive/xtba_receive/sft/
   uploadPath: /file_data_exchange/file_send/sft_send/
+  zipPath: /Users/suzhenchao/浩云/广西社矫/datapipeapi/src/main/resources/static/zipfile
 #  ip: 192.168.2.117
 #  port: 21
 #  username: anonymous
