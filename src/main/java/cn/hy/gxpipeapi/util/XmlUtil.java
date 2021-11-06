@@ -27,13 +27,18 @@ import com.alibaba.fastjson.JSONObject;
 @Slf4j
 public class XmlUtil {
 
-    public static void writeXmlOut(String templateName,String outFilePath,Map<String, Object> dataMap) {
+    private final static Configuration configuration;
+
+    static {
         //创建配置实例
-        Configuration configuration = new Configuration();
+        configuration = new Configuration();
         //设置编码
         configuration.setDefaultEncoding("UTF-8");
         //ftl模板文件统一放至/包下面
         configuration.setClassForTemplateLoading(XmlUtil.class,"/xmltemplate/");
+    }
+
+    public static void writeXmlOut(String templateName,String outFilePath,Map<String, Object> dataMap) {
         // 获取模板
         try {
             Template template = configuration.getTemplate(templateName);
@@ -48,10 +53,9 @@ public class XmlUtil {
     }
 
     /**
-     * 将xml转换为JSON对象
+     * 将xml文件转成JSONObject对象
      * @param xmlPath xml文件地址
-     * @return
-     * @throws Exception
+     * @return JSON对象
      */
     public static JSONObject xml2Json(String xmlPath){
         String xml;
@@ -64,10 +68,32 @@ public class XmlUtil {
             iterateNodes(root, jsonObject);
             return jsonObject;
         } catch (Exception e) {
-            e.getStackTrace();
+            log.info("xmlPath:{},生成JSONObject失败：{}", xmlPath, e.getMessage());
         }
         return null;
     }
+
+    /**
+     * 将xml文件转成JSONObject
+     * @param xmlFile xmlFile文件
+     * @return JSON对象
+     */
+    public static JSONObject xmlFile2Json(File xmlFile){
+        String xml;
+        try (InputStream in = new FileInputStream(xmlFile)) {
+            xml = IOUtils.toString(in);
+            JSONObject jsonObject = new JSONObject();
+            Document document = DocumentHelper.parseText(xml);
+            //获取根节点元素对象
+            Element root = document.getRootElement();
+            iterateNodes(root, jsonObject);
+            return jsonObject;
+        } catch (Exception e) {
+            log.info("xmlFile:{},生成JSONObject失败：{}", xmlFile.getName(), e.getMessage());
+        }
+        return null;
+    }
+
     /**
      * 遍历元素
      * @param node 元素
