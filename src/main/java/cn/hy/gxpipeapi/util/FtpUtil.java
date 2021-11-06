@@ -7,6 +7,7 @@ package cn.hy.gxpipeapi.util;/**
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPReply;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.apache.commons.net.ftp.FTPClient;
 import org.springframework.stereotype.Component;
@@ -31,6 +32,42 @@ public class FtpUtil {
     private static String encoding;
     private static String downloadPath;
     private static String uploadPath;
+
+    public static Logger getLog() {
+        return log;
+    }
+
+    public static String getIp() {
+        return ip;
+    }
+
+    public static int getPort() {
+        return port;
+    }
+
+    public static String getUsername() {
+        return username;
+    }
+
+    public static String getPassword() {
+        return password;
+    }
+
+    public static String getEncoding() {
+        return encoding;
+    }
+
+    public static String getDownloadPath() {
+        return downloadPath;
+    }
+
+    public static String getUploadPath() {
+        return uploadPath;
+    }
+
+    public static FTPClient getFtpClient() {
+        return ftpClient;
+    }
 
     @Value("${ftp.uploadPath}")
     public void setUploadPath(String uploadPath) {
@@ -69,7 +106,7 @@ public class FtpUtil {
         getDownloadFiles();
     }
 
-    private static FTPClient ftpClient = new FTPClient();
+    private final static FTPClient ftpClient = new FTPClient();
 
     private static boolean connect() {
         boolean result = false;
@@ -91,9 +128,14 @@ public class FtpUtil {
     }
 
     public static void main(String[] args) {
+        //  ip: 59.211.16.162
+        //  port: 16788
+        //  username: dapp
+        //  password: GXjh12#$
+        //  encoding: utf-8
         try {
-            ftpClient.connect("192.168.2.117", 21);
-            ftpClient.login("anonymous", null);
+            ftpClient.connect("59.211.16.162", 16788);
+            ftpClient.login("dapp", "GXjh12#$");
             ftpClient.setControlEncoding("UTF-8");
             int reply = ftpClient.getReplyCode();
             if (!FTPReply.isPositiveCompletion(reply)) {
@@ -137,6 +179,7 @@ public class FtpUtil {
             if (!changePath) {
                 throw new RuntimeException(String.format("切换目录失败：%s", path));
             }
+            ftpClient.enterLocalPassiveMode();
             FTPFile[] ftpFiles = ftpClient.listFiles();
             if (ftpFiles.length == 0) {
                 throw new RuntimeException(String.format("该目录[%s]下没有文件！", path));
