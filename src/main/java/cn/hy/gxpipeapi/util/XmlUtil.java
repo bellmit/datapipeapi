@@ -94,6 +94,28 @@ public class XmlUtil {
         return null;
     }
 
+    public static JSONObject xmlFile2JsonByIs(InputStream in){
+        String xml;
+        try {
+            xml = IOUtils.toString(in);
+            JSONObject jsonObject = new JSONObject();
+            Document document = DocumentHelper.parseText(xml);
+            //获取根节点元素对象
+            Element root = document.getRootElement();
+            iterateNodes(root, jsonObject);
+            return jsonObject;
+        } catch (Exception e) {
+            log.info("xmlFile:{},生成JSONObject失败：", e.getMessage());
+        }finally {
+            try {
+                in.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
+    }
+
     /**
      * 遍历元素
      * @param node 元素

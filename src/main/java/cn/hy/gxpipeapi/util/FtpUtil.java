@@ -4,21 +4,24 @@ package cn.hy.gxpipeapi.util;/**
  * @description:
  */
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPReply;
+import org.apache.tools.zip.ZipEntry;
+import org.apache.tools.zip.ZipFile;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.apache.commons.net.ftp.FTPClient;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import java.io.*;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -152,6 +155,7 @@ public class FtpUtil {
         getDefaultFiles();
     }
 
+    @Transactional
     public static void getDefaultFiles() {
         FTPClient ftpClient = getFTPClient();
         String txtFilePath = "";
@@ -183,7 +187,7 @@ public class FtpUtil {
                     }
                     List<FTPFile> ftpFiles = entry.getValue();
                     if (ftpFiles.size() == 2 && ftpFiles.get(0).getName().endsWith(".txt") && ftpFiles.get(1).getName().endsWith(".zip")
-                            && ftpFiles.get(0).getName().equals("A4501021100002020090004_20211029_060402_1635525135.txt")) {
+                            && ftpFiles.get(0).getName().equals("A4501023300002021030752_20211022_060402_1634891925696.txt")) {
                         FTPFile txtFile = ftpFiles.get(0);
                         FTPFile zipFile = ftpFiles.get(1);
                         txtFilePath = todayZipPath + txtFile.getName();
@@ -198,9 +202,25 @@ public class FtpUtil {
                              FileOutputStream zipOut = new FileOutputStream(zipFilePath);) {
                             ftpClient.retrieveFile(txtFile.getName(), txtOut);
                             ftpClient.retrieveFile(zipFile.getName(), zipOut);
-                            Md5Util.chargeMd5StrBy2Path(zipFilePath, txtFilePath);
+                            Md5Util.chargeMd5StrByZipPath(zipFilePath);
+                            //解析xml文件
+                            ZipFile unZipFile = new ZipFile(zipFilePath, "UTF-8");
+                            boolean isWithXml = false;
+                            for(Enumeration entries = unZipFile.getEntries(); entries.hasMoreElements();) {
+                                ZipEntry zipEntry = (ZipEntry) entries.nextElement();
+                                InputStream inputStream = unZipFile.getInputStream(zipEntry);
+                                if (zipEntry.getName().endsWith(".xml")) {
+                                    JSONObject xmlFileJson = XmlUtil.xmlFile2JsonByIs(inputStream);
+                                    log.info("解压的xmlJSONStr:{}", JSON.toJSONString(xmlFileJson));
+                                    isWithXml = true;
+                                }
+                            }
+                            if (!isWithXml) {
+                                throw new RuntimeException("没有xml文件！");
+                            }
+                            unZipFile.close();
                         } catch (Exception e) {
-                            e.printStackTrace();
+                            throw new RuntimeException(e.getMessage());
                         }
                     }
                 }

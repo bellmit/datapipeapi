@@ -308,7 +308,7 @@ public class ZipUtil {
     }
 
     private static void unZipAndCharge(String unZipIn, String unZipOut) {
-        Md5Util.chargeMd5StrBy2Path(unZipIn);
+        Md5Util.chargeMd5StrByZipPath(unZipIn);
         unZipFile(unZipIn, unZipOut);
     }
 
