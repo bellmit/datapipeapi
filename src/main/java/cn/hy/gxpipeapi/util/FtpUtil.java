@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import java.io.*;
+import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -122,7 +123,6 @@ public class FtpUtil {
     @PostConstruct
     public static void ftpClientInit() {
         log.info("连接ftp:" + connect());
-        getDownloadFiles();
     }
 
     private final static FTPClient ftpClient = new FTPClient();
@@ -133,6 +133,8 @@ public class FtpUtil {
             ftpClient.connect(ip, port);
             ftpClient.login(username, password);
             ftpClient.setControlEncoding(encoding);
+            ftpClient.setBufferSize(1024);
+            ftpClient.setFileType(FTPClient.BINARY_FILE_TYPE);
             int reply = ftpClient.getReplyCode();
             if (!FTPReply.isPositiveCompletion(reply)) {
                 log.info("连接失败");
@@ -153,6 +155,28 @@ public class FtpUtil {
         //  password: GXjh12#$
         //  encoding: utf-8
         getDefaultFiles();
+    }
+
+    public static boolean uploadFiles2FTP(List<File> uploadFiles, String uploadPath) {
+        FileInputStream fileIs = null;
+        try {
+            ftpClient.changeWorkingDirectory(uploadPath);
+            ftpClient.enterLocalActiveMode();
+            for (File uploadFile : uploadFiles) {
+                fileIs = new FileInputStream(uploadFile);
+                ftpClient.storeFile(uploadFile.getName(), fileIs);
+            }
+            return true;
+        } catch (IOException e) {
+            throw new RuntimeException("上传文件失败：" + e.getMessage());
+        } finally {
+            try {
+                assert fileIs != null;
+                fileIs.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Transactional
