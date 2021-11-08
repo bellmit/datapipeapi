@@ -156,7 +156,7 @@ public class FtpUtil {
         //  username: dapp
         //  password: GXjh12#$
         //  encoding: utf-8
-        getDefaultFiles();
+        getDefaultFiles2();
     }
 
     public static boolean uploadFiles2FTP(List<File> uploadFiles, String uploadPath) {
@@ -178,6 +178,33 @@ public class FtpUtil {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    @Transactional
+    public static void getDefaultFiles2() {
+        FTPClient ftpClient = getFTPClient();
+        try {
+            boolean changePath = ftpClient.changeWorkingDirectory(downloadPath);
+            if (!changePath) {
+                throw new RuntimeException(String.format("切换目录失败：%s", downloadPath));
+            }
+            ftpClient.enterLocalPassiveMode();
+            FTPFile[] ftpFilesAll = ftpClient.listFiles();
+            if (ftpFilesAll.length == 0) {
+                throw new RuntimeException(String.format("该目录[%s]下没有文件！", downloadPath));
+            } else {
+                for (FTPFile ftpFile : ftpFilesAll) {
+                    if (ftpFile.getName().endsWith("链路传输测试.txt")) {
+                        System.out.println(ftpFile.getName());
+                        boolean rename = ftpClient.rename(ftpFile.getName(), "链路传输测试2.txt");
+                        System.out.println("是否改名成功：" + rename);
+                    }
+                }
+            }
+            ftpClient.completePendingCommand();
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
         }
     }
 
