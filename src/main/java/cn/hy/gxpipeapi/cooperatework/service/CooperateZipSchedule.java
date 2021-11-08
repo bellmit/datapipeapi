@@ -68,6 +68,11 @@ public class CooperateZipSchedule {
         }
     }
 
+    @Transactional
+    public static void uploadFtpZipFiles() {
+
+    }
+
     private static void downloadZipAndAnalyse(FTPClient ftpClient, String txtFilePath, String zipFilePath, FTPFile txtFile, FTPFile zipFile) {
         try (FileOutputStream txtOut = new FileOutputStream(txtFilePath);
              FileOutputStream zipOut = new FileOutputStream(zipFilePath);) {
