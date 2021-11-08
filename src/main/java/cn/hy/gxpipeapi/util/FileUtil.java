@@ -1,6 +1,10 @@
 package cn.hy.gxpipeapi.util;
 
+import com.csvreader.CsvReader;
+
 import java.io.*;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
@@ -150,6 +154,28 @@ public class FileUtil {
             e.printStackTrace();
         }
         return "gbk";
+    }
+
+    public static ArrayList<String[]> csvGBK(InputStream in) {
+        ArrayList<String[]> csvList = new ArrayList<String[]>();
+        if (null != in) {
+            CsvReader reader = new CsvReader(in, ',', Charset.forName("gbk"));
+            try {
+                //遍历每一行，若有#注释部分，则不处理，若没有，则加入csvList
+                while (reader.readRecord()) {
+                    if (!reader.getValues()[0].contains("#"))// 清除注释部分
+                    {
+                        //获取的为每一行的信息，以数组的形式
+                        csvList.add(reader.getValues());
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            reader.close();
+        }
+        return csvList;
     }
 
     public static void main(String[] args) {

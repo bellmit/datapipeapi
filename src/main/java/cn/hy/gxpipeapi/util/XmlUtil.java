@@ -106,12 +106,6 @@ public class XmlUtil {
             return jsonObject;
         } catch (Exception e) {
             log.info("xmlFile:{},生成JSONObject失败：", e.getMessage());
-        }finally {
-            try {
-                in.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
         return null;
     }

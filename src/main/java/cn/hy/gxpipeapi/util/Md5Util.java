@@ -101,6 +101,36 @@ public class Md5Util {
         FileUtil.writeMd5Txt(sourceFilePath, md5Str, "UTF-8");
     }
 
+    public static String streamToMD5(InputStream inputStream) {
+        try {
+            MessageDigest mdTemp = MessageDigest.getInstance("MD5");
+            byte[] buffer = new byte[10240];
+
+            int numRead;
+            while((numRead = inputStream.read(buffer)) > 0) {
+                mdTemp.update(buffer, 0, numRead);
+            }
+
+            return toHexString(mdTemp.digest());
+        } catch (Exception var4) {
+            return null;
+        }
+    }
+
+    private static String toHexString(byte[] md) {
+        char[] hexDigits = new char[]{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+        int j = md.length;
+        char[] str = new char[j * 2];
+
+        for(int i = 0; i < j; ++i) {
+            byte byte0 = md[i];
+            str[2 * i] = hexDigits[byte0 >>> 4 & 15];
+            str[i * 2 + 1] = hexDigits[byte0 & 15];
+        }
+
+        return new String(str);
+    }
+
     public static void main(String[] args) {
         String filePath = "/Users/suzhenchao/浩云/广西社矫/ftp文件/接收文件/a/A4501004325002020050003_20201015_030301_1602765000509.zip";
         filePath = "/Users/suzhenchao/浩云/广西社矫/ftp文件/接收文件/test/zip/A4501004325002020050003_20201015_030301_1602765000509.zip";
