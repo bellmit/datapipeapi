@@ -87,7 +87,7 @@ public class FtpUtil {
     }
 
     @Value("${ftp.zipPath}")
-    public static void setZipPath(String zipPath) {
+    public void setZipPath(String zipPath) {
         FtpUtil.zipPath = zipPath;
     }
 
@@ -168,6 +168,7 @@ public class FtpUtil {
                 fileIs = new FileInputStream(uploadFile);
                 ftpClient.storeFile(uploadFile.getName(), fileIs);
             }
+            ftpClient.completePendingCommand();
             return true;
         } catch (IOException e) {
             throw new RuntimeException("上传文件失败：" + e.getMessage());
