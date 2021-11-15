@@ -122,7 +122,7 @@ public class FtpUtil {
         FtpUtil.encoding = encoding;
     }
 
-    @PostConstruct
+//    @PostConstruct
     public static void ftpClientInit() {
         log.info("连接ftp:" + connect());
     }
