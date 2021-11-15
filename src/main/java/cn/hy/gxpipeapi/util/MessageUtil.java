@@ -1,7 +1,9 @@
 package cn.hy.gxpipeapi.util;
 
 import cn.hy.gxpipeapi.xmlfile.dto.MessageDTO;
+import cn.hy.gxpipeapi.xmlfile.dto.MessageResultDTO;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.PostMethod;
@@ -16,6 +18,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 
 @Slf4j
@@ -46,14 +49,14 @@ public class MessageUtil {
         MessageUtil.url = url;
     }
 
-    @PostConstruct
+//    @PostConstruct
     public static void doPose() {
-        doPoseMessage();
+//        doPoseMessage();
 //        get();
 
     }
 
-    public static String poseMessage(MessageDTO messageDTO) {
+    public static MessageResultDTO poseMessage(MessageDTO messageDTO) {
         String info = null;
         try{
             HttpClient httpclient = new HttpClient();
@@ -70,7 +73,13 @@ public class MessageUtil {
             post.addParameter("f", messageDTO.getF());
             httpclient.executeMethod(post);
             info = new String(post.getResponseBody(),"gbk");
-            return info;
+            String returnStr = Optional.of(info).orElseThrow(() -> new RuntimeException("发送手机短信失败！"));
+            System.out.println("返回结果：" + returnStr);
+            MessageResultDTO messageResultDTO = getMessageResultDTO(returnStr);
+            if (!"0".equalsIgnoreCase(messageResultDTO.getResult())) {
+                throw new RuntimeException("发送手机短信失败:" + messageResultDTO.getDescription());
+            }
+            return messageResultDTO;
         }catch (Exception e) {
             throw new RuntimeException("发送手机短信失败！");
         }
@@ -100,25 +109,21 @@ public class MessageUtil {
 
     }
 
-    public static boolean doPoseMessage() {
-        String messageContent = "【好好先生】您申请的探视预约已撤销！撤销原因【这是原因。】";
-        String userNumber = "13411993590";
-        String templateId = "2201012125062";
-        String serialNumber = String.valueOf(System.currentTimeMillis());
-        MessageDTO messageDTO = new MessageDTO(SpCode, LoginName, Password, messageContent, userNumber, templateId, serialNumber);
-        Map<String, String> poseMap = new HashMap<>();
-        poseMap.put("MessageContent", messageDTO.getMessageContent());
-        poseMap.put("userNumber", "13411993590");
-        poseMap.put("templateId", "2201012125062");
-        poseMap.put("SpCode", SpCode);
-        poseMap.put("LoginName", LoginName);
-        poseMap.put("Password", Password);
-        poseMap.put("f", "1");
-//        String returnStr = HttpClientUtil.doPostJson(url, JSON.toJSONString(messageDTO));
-        String returnStr = HttpClientUtil.postMap(url, poseMap);
-        System.out.println("返回结果：" + returnStr);
-        return true;
+    public static MessageResultDTO getMessageResultDTO(String result) {
+        String[] resultStrArr = result.split("&");
+        Map<String, Object> resultMap = new HashMap<>();
+        for (String resultStr : resultStrArr) {
+            String[] resultArr = resultStr.split("=");
+            String value = "";
+            if (resultArr.length == 2) {
+                value = Optional.ofNullable(resultArr[1]).orElse("");
+            }
+            resultMap.put(resultArr[0], value);
+        }
+        JSONObject resultJSON = new JSONObject(resultMap);
+        return JSONObject.parseObject(resultJSON.toJSONString(), MessageResultDTO.class);
     }
+
 
     public static boolean get() {
         String messageContent = "好好先生向您发送了短信测试数据的传阅消息。请及时查收。";

@@ -25,9 +25,7 @@ import org.apache.commons.httpclient.HttpClient;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 公共的请求类
