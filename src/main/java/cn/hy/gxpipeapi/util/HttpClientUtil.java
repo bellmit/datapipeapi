@@ -21,9 +21,11 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.apache.commons.httpclient.HttpClient;
+import sun.net.util.URLUtil;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.*;
 
@@ -253,6 +255,45 @@ public class HttpClientUtil {
 			}
 		}
 		return null;
+	}
+
+	public static String getJSON(String url)
+	{
+		log.info("GET请求：{}", url);
+		String result = null;
+		CloseableHttpClient httpClient = HttpClients.createDefault();
+		HttpGet get = new HttpGet(url);
+		get.setHeader("Content-Type","application/json;charset=utf-8");
+		CloseableHttpResponse response = null;
+		try {
+			response = httpClient.execute(get);
+			if(response != null && response.getStatusLine().getStatusCode() == 200)
+			{
+				HttpEntity entity = response.getEntity();
+				result = EntityUtils.toString(entity,"utf-8");// 返回gbk格式
+			}
+			log.info("GET请求：{}", result);
+			return result;
+		} catch (IOException e) {
+			e.printStackTrace();
+		}finally {
+			try {
+				httpClient.close();
+				if(response != null)
+				{
+					response.close();
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return null;
+	}
+
+	public static void main(String[] args) throws UnsupportedEncodingException {
+//		get("127.0.0.1:10318/OpenAPI/gettoken?" + URLEncoder.encode("username=广西省厅终端设备&password=ZB1lPm+5Tg/QCuXCIZ9seHUr7MqJ9lu21FfPFmbxezs=&appKey=SodqyXWscBYrRb1SEtIqjw==","utf-8"));
+		getJSON("http://127.0.0.1:10318/OpenAPI/gettoken?username=广西省厅终端设备&password=" + URLEncoder.encode("ZB1lPm+5Tg/QCuXCIZ9seHUr7MqJ9lu21FfPFmbxezs=", "utf-8")
+				+ "&appKey=" + URLEncoder.encode("SodqyXWscBYrRb1SEtIqjw==", "utf-8"));
 	}
 
 }
